@@ -37,15 +37,8 @@ public class CurrentSum : MonoBehaviour
 	{
 		hasTriggeredSumReactions = true;
 
-		sumObject.TriggerSumReached();
-
-		List<CountedEntity> countedEntities = new List<CountedEntity>();
-		countedEntities.AddRange(FindObjectsOfType<CountedEntity>());
-		for (int i = 0; i < countedEntities.Count; i++)
-		{
-			countedEntities[i].TriggerSumReached();
-		}
-
+		FindObjectOfType<EventBroadcast>().TriggerEvent(EventBroadcast.Event.SUM_REACHED);
+		
 		FindObjectOfType<CountedEntitySpawner>().TriggerSumReached();
 	}
 }

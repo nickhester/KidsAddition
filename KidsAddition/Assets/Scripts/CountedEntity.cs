@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
-public abstract class CountedEntity : MonoBehaviour
+public abstract class CountedEntity : MonoBehaviour, IEventSubscriber
 {
 	//private Vector2 dragMouseOffset;
 	protected Collider2D colliderHoveringOver = null;
@@ -33,6 +34,7 @@ public abstract class CountedEntity : MonoBehaviour
 	protected virtual void Start ()
 	{
 		animator = GetComponentInChildren<Animator>();
+		FindObjectOfType<EventBroadcast>().SubscribeToEvent(EventBroadcast.Event.SUM_REACHED, this);
 
 		assignedPosition = transform.position;
 
@@ -125,9 +127,9 @@ public abstract class CountedEntity : MonoBehaviour
 		{
 			assignedPosition = FindDropPosition();
 
-			stage.UpdateNumInhabitants(1);
-
 			ChangeState(EntityState.STANDING_INSIDE_STAGE);
+
+			stage.UpdateNumInhabitants(1);
 		}
 		else
 		{
@@ -152,8 +154,14 @@ public abstract class CountedEntity : MonoBehaviour
 		}
 	}
 
-	void ChangeState(EntityState _state)
+	protected void ChangeState(EntityState _state)
 	{
+		// if already exiting, ignore any other state changes
+		if (myState == EntityState.EXITING)
+		{
+			return;
+		}
+
 		myState = _state;
 
 		switch (_state)
@@ -190,4 +198,12 @@ public abstract class CountedEntity : MonoBehaviour
 	protected abstract void Loiter();
 
 	public abstract void TriggerSumReached();
+
+	public void InformOfEvent(EventBroadcast.Event _event)
+	{
+		if (_event == EventBroadcast.Event.SUM_REACHED)
+		{
+			TriggerSumReached();
+		}
+	}
 }
