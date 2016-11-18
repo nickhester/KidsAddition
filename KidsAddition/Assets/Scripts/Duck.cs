@@ -5,20 +5,23 @@ public class Duck : CountedEntity
 {
 	protected float localCreationTime;
 	[SerializeField] private float winFlySpeed = 0.5f;
+	[SerializeField] private Vector2 gradualDirectionTendency;
+	[SerializeField] private int edgeOfScreenPad = 50;
 	private Vector2 currentFlyDirection;
+	private SpriteRenderer[] allSpriteRenderers;
 
 	protected override void Start()
 	{
 		base.Start();
-
+		allSpriteRenderers = GetComponentsInChildren<SpriteRenderer>();
 		localCreationTime = Time.time;
-
-		currentFlyDirection = GetNewFlyDirection();
+		currentFlyDirection = GetNewFlyDirection(Vector2.up);
 	}
 
-	Vector2 GetNewFlyDirection()
+	Vector2 GetNewFlyDirection(Vector2 _generalDirection)
 	{
 		Vector2 returnVector = new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f));
+		returnVector += _generalDirection;
 		return returnVector.normalized;
 	}
 
@@ -30,17 +33,35 @@ public class Duck : CountedEntity
 		}
 		else if (myState == EntityState.EXITING)
 		{
+			Vector2 currentPosition = Camera.main.WorldToScreenPoint(transform.position);
+			if (currentPosition.x < edgeOfScreenPad)
+			{
+				currentFlyDirection = GetNewFlyDirection(Vector2.right);
+			}
+			else if (currentPosition.x > (Camera.main.pixelWidth - edgeOfScreenPad))
+			{
+				currentFlyDirection = GetNewFlyDirection(Vector2.left);
+			}
+			else if (currentPosition.y < edgeOfScreenPad)
+			{
+				currentFlyDirection = GetNewFlyDirection(Vector2.up);
+			}
+			else if (currentPosition.y > (Camera.main.pixelHeight - edgeOfScreenPad))
+			{
+				currentFlyDirection = GetNewFlyDirection(Vector2.down);
+			}
+
+			bool isMovingOppositeDirection = currentFlyDirection.x > 0.0f;
+			for (int i = 0; i < allSpriteRenderers.Length; i++)
+			{
+				allSpriteRenderers[i].flipX = isMovingOppositeDirection;
+			}
+
+			// affect flight
+			currentFlyDirection = currentFlyDirection + gradualDirectionTendency;
+
 			// fly around
 			transform.Translate(currentFlyDirection * winFlySpeed * Time.deltaTime);
-
-			Vector2 currentPosition = Camera.main.WorldToScreenPoint(transform.position);
-			if (currentPosition.x < 0
-				|| currentPosition.x > Camera.main.pixelWidth
-				|| currentPosition.y < 0
-				|| currentPosition.y > Camera.main.pixelHeight)
-			{
-				currentFlyDirection = GetNewFlyDirection();
-			}
 		}
 	}
 

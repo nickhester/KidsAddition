@@ -11,7 +11,7 @@ public abstract class CountedEntity : MonoBehaviour, IEventSubscriber
 	[SerializeField] protected float speedToWalkFromStart = 2.0f;
 
 	// animations
-	protected Animator animator;
+	[SerializeField] protected Animator animator;
 
 	// loiter
 	protected Vector2 assignedPosition;
@@ -33,7 +33,6 @@ public abstract class CountedEntity : MonoBehaviour, IEventSubscriber
 
 	protected virtual void Start ()
 	{
-		animator = GetComponentInChildren<Animator>();
 		FindObjectOfType<EventBroadcast>().SubscribeToEvent(EventBroadcast.Event.SUM_REACHED, this);
 
 		assignedPosition = transform.position;
