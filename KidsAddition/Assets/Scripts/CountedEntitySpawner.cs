@@ -2,7 +2,7 @@
 using System.Collections;
 using System;
 
-public class CountedEntitySpawner : MonoBehaviour
+public class CountedEntitySpawner : MonoBehaviour, IEventSubscriber
 {
 	public GameObject CountedEntityPrefab;
 	private CountedEntity mostRecentSpawnedEntity;
@@ -13,28 +13,31 @@ public class CountedEntitySpawner : MonoBehaviour
 	private int maxSpawn = 50;
 	private int currentSpawned = 0;
 
-	void Start ()
+	void Start()
 	{
-		
+		FindObjectOfType<EventBroadcast>().SubscribeToEvent(EventBroadcast.Event.SUM_REACHED, this);
 	}
-	
+
 	void Update ()
 	{
-		if (!mostRecentSpawnedEntity)
+		if (isSpawning)
 		{
-			SpawnCountedEntity();
-		}
-
-		if (isSpawning && currentSpawned < maxSpawn)
-		{
-			if (mostRecentSpawnedEntity && mostRecentSpawnedEntity.GetHasBeenMovedByPlayer())
+			if (!mostRecentSpawnedEntity)
 			{
-				spawnDelayCounter += Time.deltaTime;
+				SpawnCountedEntity();
+			}
 
-				if (spawnDelayCounter >= spawnDelay)
+			if (currentSpawned < maxSpawn)
+			{
+				if (mostRecentSpawnedEntity && mostRecentSpawnedEntity.GetHasBeenMovedByPlayer())
 				{
-					spawnDelayCounter = 0.0f;
-					SpawnCountedEntity();
+					spawnDelayCounter += Time.deltaTime;
+
+					if (spawnDelayCounter >= spawnDelay)
+					{
+						spawnDelayCounter = 0.0f;
+						SpawnCountedEntity();
+					}
 				}
 			}
 		}
@@ -48,8 +51,11 @@ public class CountedEntitySpawner : MonoBehaviour
 		currentSpawned++;
 	}
 
-	public void TriggerSumReached()
+	public void InformOfEvent(EventBroadcast.Event _event)
 	{
-		isSpawning = false;
+		if (_event == EventBroadcast.Event.SUM_REACHED)
+		{
+			isSpawning = false;
+		}
 	}
 }

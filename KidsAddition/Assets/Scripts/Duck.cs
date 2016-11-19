@@ -8,6 +8,8 @@ public class Duck : CountedEntity
 	[SerializeField] private Vector2 gradualDirectionTendency;
 	[SerializeField] private int edgeOfScreenPad = 50;
 	private Vector2 currentFlyDirection;
+	private float edgeOfScreenDetectionMinInterval = 0.5f;
+	private float edgeOfScreenDetectionCounter = 0.0f;
 	private SpriteRenderer[] allSpriteRenderers;
 
 	protected override void Start()
@@ -33,28 +35,34 @@ public class Duck : CountedEntity
 		}
 		else if (myState == EntityState.EXITING)
 		{
-			Vector2 currentPosition = Camera.main.WorldToScreenPoint(transform.position);
-			if (currentPosition.x < edgeOfScreenPad)
+			edgeOfScreenDetectionCounter += Time.deltaTime;
+			if (edgeOfScreenDetectionCounter > edgeOfScreenDetectionMinInterval)
 			{
-				currentFlyDirection = GetNewFlyDirection(Vector2.right);
-			}
-			else if (currentPosition.x > (Camera.main.pixelWidth - edgeOfScreenPad))
-			{
-				currentFlyDirection = GetNewFlyDirection(Vector2.left);
-			}
-			else if (currentPosition.y < edgeOfScreenPad)
-			{
-				currentFlyDirection = GetNewFlyDirection(Vector2.up);
-			}
-			else if (currentPosition.y > (Camera.main.pixelHeight - edgeOfScreenPad))
-			{
-				currentFlyDirection = GetNewFlyDirection(Vector2.down);
-			}
+				edgeOfScreenDetectionCounter = 0.0f;
 
-			bool isMovingOppositeDirection = currentFlyDirection.x > 0.0f;
-			for (int i = 0; i < allSpriteRenderers.Length; i++)
-			{
-				allSpriteRenderers[i].flipX = isMovingOppositeDirection;
+				Vector2 currentPosition = Camera.main.WorldToScreenPoint(transform.position);
+				if (currentPosition.x < edgeOfScreenPad)
+				{
+					currentFlyDirection = GetNewFlyDirection(Vector2.right);
+				}
+				else if (currentPosition.x > (Camera.main.pixelWidth - edgeOfScreenPad))
+				{
+					currentFlyDirection = GetNewFlyDirection(Vector2.left);
+				}
+				else if (currentPosition.y < edgeOfScreenPad)
+				{
+					currentFlyDirection = GetNewFlyDirection(Vector2.up);
+				}
+				else if (currentPosition.y > (Camera.main.pixelHeight - edgeOfScreenPad))
+				{
+					currentFlyDirection = GetNewFlyDirection(Vector2.down);
+				}
+
+				bool isMovingOppositeDirection = currentFlyDirection.x > 0.0f;
+				for (int i = 0; i < allSpriteRenderers.Length; i++)
+				{
+					allSpriteRenderers[i].flipX = isMovingOppositeDirection;
+				}
 			}
 
 			// affect flight
@@ -72,6 +80,13 @@ public class Duck : CountedEntity
 
 	public override void TriggerSumReached()
 	{
-		ChangeState(EntityState.EXITING);
+		if (myState == EntityState.STANDING_INSIDE_STAGE)
+		{
+			ChangeState(EntityState.EXITING);
+		}
+		else
+		{
+			Destroy(gameObject);
+		}
 	}
 }

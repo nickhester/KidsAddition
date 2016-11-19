@@ -38,7 +38,5 @@ public class CurrentSum : MonoBehaviour
 		hasTriggeredSumReactions = true;
 
 		FindObjectOfType<EventBroadcast>().TriggerEvent(EventBroadcast.Event.SUM_REACHED);
-		
-		FindObjectOfType<CountedEntitySpawner>().TriggerSumReached();
 	}
 }
